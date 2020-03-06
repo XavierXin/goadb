@@ -1,32 +1,48 @@
 package goadb
 
 import (
-	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestMain(t *testing.T) {
-	Debug = false
-	adbPath := "/home/holmes/prosoft/android-sdk-linux/platform-tools/adb"
-	adb := NewGoAdb(adbPath)
-	fmt.Println("adb path is:")
-	fmt.Println(adb.GetAdbPath())
-	fmt.Println("adb deivces:")
-	devices := adb.Devices()
-	fmt.Println("connected", len(devices), "device")
-	for _, dev := range devices {
-		if dev != nil {
-			fmt.Println("  -- deviceId", dev.GetDeviceId(), "status", dev.GetStatus())
-		}
-	}
-	fmt.Println("adb versoin", adb.Version())
+const (
+	TEST_ADB_PATH = "/xinxi/adb"
+)
 
-	pm, _ := adb.ShellCmd("pm list package -f -3")
-	fmt.Println(pm)
-	pkgStrings := strings.Split(pm, "\n")
-	fmt.Println(len(pkgStrings))
-	for _, pkg := range pkgStrings {
-		fmt.Println(pkg)
+func ForTestCommandExecuter(cmd string, args ...string) (string, error) {
+	fullCmd := append([]string{cmd}, args...)
+	return strings.Join(fullCmd, " "), nil
+}
+
+func TestMain(t *testing.T) {
+	device1 := &Device{
+		transportID:     1,
+		adbPath:         TEST_ADB_PATH,
+		commandExecuter: ForTestCommandExecuter,
+	}
+	device2 := &Device{
+		transportID:     2,
+		adbPath:         TEST_ADB_PATH,
+		commandExecuter: ForTestCommandExecuter,
+	}
+
+	testTable := []struct {
+		testIndex   int
+		device      *Device
+		inputCmd    string
+		expectedCmd string
+	}{
+		{1, device1, "whoami", TEST_ADB_PATH + " -s 1 shell whoami"},
+		{2, device1, "/axon/bin/axctl dvr -state", TEST_ADB_PATH + " -s 1 shell /axon/bin/axctl dvr -state"},
+		{3, device2, "whoami", TEST_ADB_PATH + " -s 2 shell whoami"},
+		{4, device2, "/axon/bin/axctl dvr -state", TEST_ADB_PATH + " -s 2 shell /axon/bin/axctl dvr -state"},
+	}
+
+	for _, testCase := range testTable {
+		output, err := testCase.device.ShellCmd(testCase.inputCmd)
+		assert.Nil(t, err)
+		assert.Equal(t, string(output), testCase.expectedCmd)
 	}
 }
