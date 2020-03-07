@@ -2,6 +2,7 @@ package goadb
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"strings"
 )
@@ -22,8 +23,13 @@ func GetAllConnectedDevices() (devices []*Device, err error) {
 }
 
 func (d *Device) ShellCmd(cmd string) (string, error) {
-	args := strings.Split(cmd, " ")
-	argsWithID := append([]string{"-t", d.transportID, "shell"}, args...)
+	return d.adbCmd("shell", cmd)
+}
+
+// cmd can be "pull", "push", etc.
+func (d *Device) adbCmd(cmd string, args string) (string, error) {
+	splitArgs := strings.Split(args, " ")
+	argsWithID := append([]string{"-t", d.transportID, cmd}, splitArgs...)
 	return d.commandExecuter(d.adbPath, argsWithID...)
 }
 
@@ -43,4 +49,9 @@ func (d *Device) executeShellCmd(cmd string, args ...string) (output string, err
 
 func (d *Device) HostName() (string, error) {
 	return d.ShellCmd("hostname")
+}
+
+func (d *Device) Pull(src, dst string) error {
+	_, err := d.adbCmd("pull", fmt.Sprintf("%s %s", src, dst))
+	return err
 }
