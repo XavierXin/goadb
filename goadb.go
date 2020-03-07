@@ -45,10 +45,10 @@ func (d *Device) executeShellCmd(cmd string, args ...string) (output string, err
 	execCmd := exec.Command(cmd, args...)
 	out, err := execCmd.CombinedOutput()
 	output = string(out)
-	if len(output) != 0 {
-		output = string(out[:len(out)-1])
+	if len(output) >= 2 {
+		output = string(out[:len(out)-2]) // get rid of the tail
 	}
-	return output, err // get rid of last \n
+	return output, err
 }
 
 func (d *Device) HostName() (string, error) {
