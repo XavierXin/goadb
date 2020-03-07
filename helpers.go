@@ -1,7 +1,7 @@
 package goadb
 
 import (
-	"fmt"
+	"errors"
 	"os/exec"
 	"strings"
 )
@@ -21,23 +21,33 @@ func getDevices(adbPath string) (devices []*Device, err error) {
 	if err != nil {
 		return
 	}
-	cmd = exec.Command(adbPath, "devices")
+	cmd = exec.Command(adbPath, "devices", "-l")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return
 	}
 	lines := strings.Split(string(output), "\n")
-	for i, line := range lines {
+	for _, line := range lines {
 		if len(line) > 0 {
 			if strings.Contains(line, "List") {
 				continue
 			}
-			deviceLine := strings.Split(line, "	")
-			if len(deviceLine) != 2 {
-				return devices, fmt.Errorf("get-devices: cannot parse %s", line)
+			transportID := "0"
+			deviceLine := strings.Fields(line)
+			for _, deviceLineSegment := range deviceLine {
+				if strings.Contains(deviceLineSegment, "transport_id") {
+					transportIDPair := strings.Split(deviceLineSegment, ":")
+					if len(transportIDPair) >= 2 {
+						transportID = transportIDPair[1]
+						break
+					}
+				}
+			}
+			if transportID == "0" {
+				return devices, errors.New("your adb version does not support connect by transport")
 			}
 			device := &Device{
-				transportID: i,
+				transportID: transportID,
 				adbPath:     adbPath,
 			}
 			device.commandExecuter = device.executeShellCmd
