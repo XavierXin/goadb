@@ -16,7 +16,12 @@ func findAdbPath() string {
 }
 
 func getDevices(adbPath string) (devices []*Device, err error) {
-	cmd := exec.Command(adbPath, "devices")
+	cmd := exec.Command(adbPath, "start-server")
+	_, err = cmd.CombinedOutput()
+	if err != nil {
+		return
+	}
+	cmd = exec.Command(adbPath, "devices")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return
