@@ -11,12 +11,15 @@ const (
 	TEST_ADB_PATH = "/xinxi/adb"
 )
 
+var gFullCommand string
+
 func ForTestCommandExecuter(cmd string, args ...string) (string, error) {
 	fullCmd := append([]string{cmd}, args...)
-	return strings.Join(fullCmd, " "), nil
+	gFullCommand = strings.Join(fullCmd, " ")
+	return "", nil
 }
 
-func TestGeneralCommand(t *testing.T) {
+func TestShellCommand(t *testing.T) {
 	device1 := &Device{
 		transportID:     "1",
 		adbPath:         TEST_ADB_PATH,
@@ -41,9 +44,39 @@ func TestGeneralCommand(t *testing.T) {
 	}
 
 	for _, testCase := range testTable {
-		output, err := testCase.device.ShellCmd(testCase.inputCmd)
+		_, err := testCase.device.ShellCmd(testCase.inputCmd)
 		assert.Nil(t, err)
-		assert.Equal(t, string(output), testCase.expectedCmd)
+		assert.Equal(t, gFullCommand, testCase.expectedCmd)
+	}
+}
+
+func TestPullCommand(t *testing.T) {
+	device1 := &Device{
+		transportID:     "1",
+		adbPath:         TEST_ADB_PATH,
+		commandExecuter: ForTestCommandExecuter,
+	}
+	device2 := &Device{
+		transportID:     "2",
+		adbPath:         TEST_ADB_PATH,
+		commandExecuter: ForTestCommandExecuter,
+	}
+
+	testTable := []struct {
+		testIndex   int
+		device      *Device
+		src         string
+		dst         string
+		expectedCmd string
+	}{
+		{1, device1, "./", "/data", TEST_ADB_PATH + " -t 1 pull ./ /data"},
+		{2, device2, "xinxi", "-r /data", TEST_ADB_PATH + " -t 2 pull xinxi -r /data"},
+	}
+
+	for _, testCase := range testTable {
+		err := testCase.device.Pull(testCase.src, testCase.dst)
+		assert.Nil(t, err)
+		assert.Equal(t, gFullCommand, testCase.expectedCmd)
 	}
 }
 
