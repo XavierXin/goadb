@@ -1,6 +1,7 @@
 package goadb
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -58,6 +59,7 @@ func TestGetDevice(t *testing.T) {
 	}
 	for _, device := range devices {
 		assert.NotEqual(t, device.transportID, "0")
+		fmt.Println(device.transportID)
 		hostname, err := device.HostName()
 		assert.Nil(t, err)
 		assert.NotEqual(t, len(hostname), 0)
