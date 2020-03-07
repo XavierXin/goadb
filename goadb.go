@@ -7,9 +7,6 @@ import (
 	"strings"
 )
 
-type DeviceIf struct {
-}
-
 type Device struct {
 	transportID     int
 	adbPath         string
@@ -27,7 +24,7 @@ func GetAllConnectedDevices() (devices []*Device, err error) {
 
 func (d *Device) ShellCmd(cmd string) (string, error) {
 	args := strings.Split(cmd, " ")
-	argsWithID := append([]string{"-s", strconv.Itoa(d.transportID), "shell"}, args...)
+	argsWithID := append([]string{"-t", strconv.Itoa(d.transportID), "shell"}, args...)
 	return d.commandExecuter(d.adbPath, argsWithID...)
 }
 
@@ -37,5 +34,9 @@ func (d *Device) ShellCmd(cmd string) (string, error) {
 func (d *Device) executeShellCmd(cmd string, args ...string) (output string, err error) {
 	execCmd := exec.Command(cmd, args...)
 	out, err := execCmd.CombinedOutput()
-	return string(out), err
+	return string(out[:len(out)-1]), err // get rid of last \n
+}
+
+func (d *Device) HostName() (string, error) {
+	return d.ShellCmd("hostname")
 }
