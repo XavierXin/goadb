@@ -2,7 +2,6 @@ package goadb
 
 import (
 	"errors"
-	"fmt"
 	"os/exec"
 	"strings"
 )
@@ -33,10 +32,9 @@ func getDevices(adbPath string) (devices []*Device, err error) {
 			if strings.Contains(line, "List") {
 				continue
 			}
-			deviceLine := strings.Split(line, "	")
 			transportID := "0"
+			deviceLine := strings.Fields(line)
 			for _, deviceLineSegment := range deviceLine {
-				fmt.Println(deviceLineSegment)
 				if strings.Contains(deviceLineSegment, "transport_id") {
 					transportIDPair := strings.Split(deviceLineSegment, ":")
 					if len(transportIDPair) >= 2 {
