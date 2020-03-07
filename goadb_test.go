@@ -1,7 +1,6 @@
 package goadb
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -19,12 +18,12 @@ func ForTestCommandExecuter(cmd string, args ...string) (string, error) {
 
 func TestGeneralCommand(t *testing.T) {
 	device1 := &Device{
-		transportID:     1,
+		transportID:     "1",
 		adbPath:         TEST_ADB_PATH,
 		commandExecuter: ForTestCommandExecuter,
 	}
 	device2 := &Device{
-		transportID:     2,
+		transportID:     "2",
 		adbPath:         TEST_ADB_PATH,
 		commandExecuter: ForTestCommandExecuter,
 	}
@@ -54,14 +53,12 @@ func TestGetDevice(t *testing.T) {
 		return // this env does not have adb installed, abort
 	}
 	devices, err := getDevices(adbPath)
-	assert.Nil(t, err)
-	if len(devices) == 0 {
+	if len(devices) == 0 || err != nil {
 		return // current env does not have adb device connected
 	}
-	for i, device := range devices {
-		assert.Equal(t, device.transportID, i+1)
+	for _, device := range devices {
+		assert.NotEqual(t, device.transportID, "0")
 		hostname, err := device.HostName()
-		fmt.Println(err.Error())
 		assert.Nil(t, err)
 		assert.NotEqual(t, len(hostname), 0)
 		assert.True(t, device.IsActive())

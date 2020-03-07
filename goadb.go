@@ -3,12 +3,11 @@ package goadb
 import (
 	"errors"
 	"os/exec"
-	"strconv"
 	"strings"
 )
 
 type Device struct {
-	transportID     int
+	transportID     string
 	adbPath         string
 	commandExecuter func(cmd string, args ...string) (string, error)
 }
@@ -24,7 +23,7 @@ func GetAllConnectedDevices() (devices []*Device, err error) {
 
 func (d *Device) ShellCmd(cmd string) (string, error) {
 	args := strings.Split(cmd, " ")
-	argsWithID := append([]string{"-t", strconv.Itoa(d.transportID), "shell"}, args...)
+	argsWithID := append([]string{"-t", d.transportID, "shell"}, args...)
 	return d.commandExecuter(d.adbPath, argsWithID...)
 }
 
