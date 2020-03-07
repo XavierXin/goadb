@@ -62,5 +62,6 @@ func TestGetDevice(t *testing.T) {
 		hostname, err := device.HostName()
 		assert.Nil(t, err)
 		assert.NotEqual(t, len(hostname), 0)
+		assert.True(t, device.IsActive())
 	}
 }

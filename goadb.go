@@ -28,6 +28,11 @@ func (d *Device) ShellCmd(cmd string) (string, error) {
 	return d.commandExecuter(d.adbPath, argsWithID...)
 }
 
+func (d *Device) IsActive(cmd string) bool {
+	output, err := d.ShellCmd("whoami")
+	return err == nil && !strings.Contains(output, "error: no device with transport id")
+}
+
 // executeShellCmd execute "cmd args..."
 // args has to include -s transportID
 // isolated this function out to make testing easier
