@@ -46,7 +46,7 @@ func (d *Device) executeShellCmd(cmd string, args ...string) (output string, err
 	out, err := execCmd.CombinedOutput()
 	output = string(out)
 	if len(output) != 0 {
-		output = output[:len(output)-1]
+		output = string(out[:len(out)-1])
 	}
 	return output, err // get rid of last \n
 }
